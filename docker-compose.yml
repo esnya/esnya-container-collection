@@ -1,0 +1,50 @@
+version: '3.9'
+
+x-deploy: &deploy-gpu
+  resources:
+    reservations:
+      devices:
+        - driver: nvidia
+          count: 1
+          capabilities: [utility, compute]
+
+services:
+  transformers:
+    build:
+      context: .
+      dockerfile: transformers.dockerfile
+    image: esnya/transformers:latest
+    deploy: *deploy-gpu
+  transformers-v4.31.0:
+    extends: transformers
+    build:
+      args:
+        - transformers_version===4.31.0
+    image: esnya/transformers:v4.31.0
+  transformers-next:
+    extends: transformers
+    build:
+      context: .
+      dockerfile: transformers-next.dockerfile
+    image: esnya/transformers:next
+  transformers-whisper-medium-fp16:
+    build:
+      context: .
+      dockerfile: transformers-whisper.dockerfile
+      args:
+        - size=medium
+        - dtype=float16
+    image: esnya/transformers-whisper:medium-fp16
+    depends_on:
+      - transformers
+    deploy: *deploy-gpu
+  transformers-whisper-large-fp16:
+    extends: transformers-whisper-medium-fp16
+    build:
+      args:
+        - base_image=esnya/transformers-whisper:medium-fp16
+        - size=large
+        - dtype=float16
+    image: esnya/transformers-whisper:large-fp16
+    depends_on:
+      - transformers-whisper-medium-fp16

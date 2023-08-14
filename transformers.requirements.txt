@@ -1,0 +1,9 @@
+accelerate
+bitsandbytes
+datasets
+evaluate
+librosa
+optimum
+peft
+soundfile
+xformers
